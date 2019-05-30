@@ -681,6 +681,111 @@ ValidationRules&lt;ValidatedPartial&lt;NEA&lt;ValidationError&gt;&gt;&gt;
 	  email: "tomas.ruiz@47deg.com")
 						```
 					</section>
+					<section>
+						<h2>Bonus Track II</h2>
+
+						<p>I don't need to use NonEmptyArray</p>
+
+						<p style="font-size: 40%;">thanks to</p>
+
+						<h3>Semigroup<h3>
+					</section>
+					<section data-markdown data-background="#fff">
+						### Semigroup
+
+						Combine two elements of the same type.
+					</section>
+					<section data-markdown data-background="#fff">
+						### Semigroup
+
+						Extending the error model to capture multiple errors
+
+						```swift
+enum ValidationError: Error {
+    case emptyFirstName(String)
+    case emptyLastName(String)
+    case userTooYoung(Date)
+    case invalidDocumentId(String)
+    case invalidPhoneNumber(String)
+    case invalidEmail(String)
+    indirect case multiple(first: ValidationError,
+                           rest: [ValidationError])
+}
+						```
+					</section>
+					<section data-markdown data-background="#fff">
+						### Semigroup
+
+						Instance of `Semigroup` for `ValidationError`
+
+						```swift
+extension ValidationError: Semigroup {
+  func combine(_ other: ValidationError) -> ValidationError {
+    switch (self, other) {
+    case let (.multiple(first: selfFirst, rest: selfRest),
+              .multiple(first: otherFirst, rest: otherRest)):
+      return .multiple(first: selfFirst, rest: selfRest + [otherFirst] + otherRest)
+    case let (.multiple(first: first, rest: rest), _):
+      return .multiple(first: first, rest: rest + [other])
+    case let (_, .multiple(first: first, rest: rest)):
+      return .multiple(first: self, rest: [first] + rest)
+    default:
+      return .multiple(first: self, rest: [other])
+    }
+  }
+}
+						```
+					</section>
+					<section data-markdown data-background="#fff">
+						### Semigroup + Tagless Final
+
+						Validation functions
+
+						```swift
+class ValidationRules&lt;F: ApplicativeError&gt;
+ where F.E == ValidationError {
+  static func validate(email: String) -> Kind&lt;F, String&gt; {
+    if email.contains("@") {
+      return .pure(email)
+    } else {
+      return .raiseError(.invalidEmail(email))
+    }
+  }
+}
+						```
+					</section>
+					<section data-markdown data-background="#fff">
+						### Semigroup + Tagless final
+
+						Interpretation to `Either`
+
+						```swift
+ValidationRules&lt;EitherPartial&lt;ValidationError&gt;&gt;
+  .makeForm(
+	  firstName: "Tomás",
+	  lastName: "Ruiz-López",
+	  birthday: Date(timeIntervalSince1970: 10),
+	  documentId: "12345678T",
+	  phoneNumber: "666111222",
+	  email: "tomas.ruiz@47deg.com")
+						```
+					</section>
+					<section data-markdown data-background="#fff">
+						### Semigroup + Tagless final
+
+						Interpretation to `Validated`
+
+						```swift
+ValidationRules&lt;ValidatedPartial&lt;ValidationError&gt;&gt;
+  .makeForm(
+	  firstName: "Tomás",
+	  lastName: "Ruiz-López",
+	  birthday: Date(timeIntervalSince1970: 10),
+	  documentId: "12345678T",
+	  phoneNumber: "666111222",
+	  email: "tomas.ruiz@47deg.com")
+						```
+					</section>
 			</div>
 			<footer>
 				<div>@tomasruizlopez | #AltConfMadrid | @bow_swift</div>
