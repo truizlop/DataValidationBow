@@ -581,6 +581,106 @@ static func ap&lt;A, B&gt;(_ ff: F&lt;(A) -&gt; B&gt;,
 						- Bow: [@bow_swift](https://twitter.com/bow_swift) | [bow-swift.io](https://bow-swift.io/)
 						- 47degrees: [@47deg](https://twitter.com/47deg) | [47deg.com](https://www.47deg.com)
 					</section>
+					<section>
+						<h2>Bonus Track I</h2>
+
+						<p>I don't care about the type that I'm using</p>
+
+						<p style="font-size: 40%;">a.k.a.</p>
+
+						<h3>Tagless Final<h3>
+					</section>
+					<section data-markdown data-background="#fff">
+						### Tagless Final
+
+						`F: ApplicativeError`
+
+						- `F.pure ~ Result.success`
+						- `F.raiseError ~ Result.failure`
+					</section>
+					<section data-markdown data-background="#fff">
+						### Tagless Final
+
+						Instances of `ApplicativeError`
+
+						| Data Type | `pure` | `raiseError` |
+						| --------- |:------:|:------------:|
+						| `Either` | `right`  | `left` |
+						| `Validated` | `valid` | `invalid` |
+					</section>
+					<section data-markdown data-background="#fff">
+						### Tagless Final
+
+						Creating success and failure
+
+						```swift
+class ValidationRules&lt;F: ApplicativeError&gt;
+  where F.E == NEA&lt;ValidationError&gt; {
+  static func validate(email: String) -> Kind&lt;F, String&gt; {
+    if email.contains("@") {
+      return .pure(email)
+    } else {
+      return .raiseError(.of(.invalidEmail(email)))
+    }
+  }
+}
+						```
+					</section>
+					<section data-markdown data-background="#fff">
+						### Tagless Final
+
+						Combining independent computations
+
+						```swift
+class ValidationRules&lt;F: ApplicativeError&gt; {
+  static func makeForm(firstName: String, lastName: String,
+                       birthday: Date,
+                       documentId: String,
+                       phoneNumber: String,
+                       email: String) -> Kind&lt;F, Form&gt; {
+    return F.map(validate(firstName: firstName),
+      validate(lastName: lastName),
+      validate(birthday: birthday, referenceDate: Date()),
+      validate(documentId: documentId),
+      validate(phoneNumber: phoneNumber),
+      validate(email: email),
+      Form.init)
+  }
+}
+						```
+					</section>
+					<section data-markdown data-background="#fff">
+						### Tagless final
+
+						Interpretation to `Either`
+
+						```swift
+ValidationRules&lt;EitherPartial&lt;NEA&lt;ValidationError&gt;&gt;&gt;
+  .makeForm(
+	  firstName: "Tomás",
+	  lastName: "Ruiz-López",
+	  birthday: Date(timeIntervalSince1970: 10),
+	  documentId: "12345678T",
+	  phoneNumber: "666111222",
+	  email: "tomas.ruiz@47deg.com")
+						```
+					</section>
+					<section data-markdown data-background="#fff">
+						### Tagless final
+
+						Interpretation to `Validated`
+
+						```swift
+ValidationRules&lt;ValidatedPartial&lt;NEA&lt;ValidationError&gt;&gt;&gt;
+  .makeForm(
+	  firstName: "Tomás",
+	  lastName: "Ruiz-López",
+	  birthday: Date(timeIntervalSince1970: 10),
+	  documentId: "12345678T",
+	  phoneNumber: "666111222",
+	  email: "tomas.ruiz@47deg.com")
+						```
+					</section>
 			</div>
 			<footer>
 				<div>@tomasruizlopez | #AltConfMadrid | @bow_swift</div>
