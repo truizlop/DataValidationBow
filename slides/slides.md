@@ -226,7 +226,6 @@ func divide<F: ErrorSuccessRepresentable>(x: Int, y: Int) -> F<DivideError, Int>
    guard y != 0 else { return .failure(.divisionByZero)
    return .success(x / y)
 }
-}
 ```
 
 ---

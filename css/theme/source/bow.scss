@@ -1,7 +1,7 @@
 /**
  * Bow theme for reveal.js.
  *
- * By Hakim El Hattab, http://hakim.se
+ * By 47deg, 47deg.com
  */
 
 
@@ -13,7 +13,8 @@
 
 // Include theme-specific fonts
 @import url(https://fonts.googleapis.com/css?family=Poppins:400,700,400italic,700italic);
-@import url(../../lib/font/source-sans-pro/source-sans-pro.css);
+@import url(https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.206/distr/fira_code.css);
+// @import url(../../lib/font/source-sans-pro/source-sans-pro.css);
 
 
 // Override theme settings (see ../template/settings.scss)
@@ -25,7 +26,7 @@ $headingColor: #fff;
 $mainFontSize: 42px;
 $mainFont: 'Poppins', Helvetica, sans-serif;
 $headingFont: 'Poppins', Helvetica, sans-serif;
-$codeFont: 'Source Sans Pro', monospace;
+$codeFont: 'Fira Code', monospace;
 $headingTextShadow: none;
 $headingLetterSpacing: normal;
 $headingTextTransform: none;
@@ -40,8 +41,10 @@ $heading3Size: 1.3em;
 $heading4Size: 1.0em;
 
 section.has-light-background {
-	&, h1, h2, h3, h4, h5, h6 {
-		color: #222;
+	color: #222;
+
+	h1, h2, h3, h4, h5, h6 {
+		color: #d54048;
 	}
 }
 
@@ -80,4 +83,24 @@ section.has-light-background {
 	display: inline-block;
 	max-width: 40vw;
 	font-size: 60%;
+}
+
+.reveal .slide-number {
+	right: 0;
+	bottom: 0;
+	font-size: 1rem;
+	padding: 12px 4px 4px 12px;
+	background: linear-gradient(to bottom right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 49%, rgba(0, 0, 0, 0.2) 51%, rgba(0, 0, 0, 0.4) 100%);
+	color: rgba(255, 255, 255, 0.8);
+	opacity: 0.8;
+}
+
+.reveal.has-dark-background .slide-number {
+	background: linear-gradient(to bottom right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 49%, rgba(0, 0, 0, 0.2) 51%, rgba(0, 0, 0, 0.4) 100%);
+	color: rgba(255, 255, 255, 0.8);
+}
+
+.reveal.has-light-background .slide-number {
+	background: linear-gradient(to bottom right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 49%, rgba(255, 255, 255, 0.2) 51%, rgba(255, 255, 255, 0.4) 100%);
+	color: rgba(0, 0, 0, 0.8);
 }

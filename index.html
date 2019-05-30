@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>Bow - Functional Programming in Swift</title>
+		<title>Error Management and Data Validation with Bow</title>
 
 		<link rel="stylesheet" href="css/reset.css">
 		<link rel="stylesheet" href="css/reveal.css">
@@ -26,24 +26,29 @@
 		<div class="reveal">
 			<div class="slides">
 				<div class="slides">
-					<section data-markdown >
-						## Error management and data validation with Bow
-
-						Tomás Ruiz-López
-
-						Senior Software Engineer at 47degrees
-
-						[@tomasruizlopez](https://twitter.com/tomasruizlopez)
+					<section data-background="img/bow-background.png">
+						<h3>Error Management and Data Validation with</h3>
+						<h1>Bow</h1>
+						<p style="font-size: 75%;">Tomás Ruiz-López</p>
+						<p style="font-size: 50%;">Senior Software Engineer at 47degrees</p>
+						<p style="font-size: 50%;"><a href="https://twitter.com/tomasruizlopez" target="_blank">@tomasruizlopez</a></p>
+						<p><img src="img/tomas.png" height="80"/> <img src="img/47deg-logo.png" height="80"/></p>
 					</section>
-					<section data-markdown data-background="#fff">
+					<section data-background="#fff">
+						<p><img src="img/47-brand-red.png" height="200"/></p>
+
+						<p><a href="http://twitter.com/47deg">@47deg</a> | <a href="https://www.47deg.com/">47deg.com</a></p>
+					</section>
+					<section data-markdown>
 						## Outline
 
-						1. Error modeling
-						2. Result
-						3. Fail-fast
-						4. Error accumulation
-						5. Applicative
-						6. Conclusions
+						1. Running example
+						2. Error modeling
+						3. Result
+						4. Fail-fast
+						5. Error accumulation
+						6. Applicative
+						7. Conclusions
 					</section>
 					<section data-markdown data-background="#fff">
 						## Running example
@@ -131,7 +136,8 @@ let result = Result(catching: {
 result: Result&lt;String, Error&gt;
 						```
 					</section>
-					<section data-markdown data-background="#fff">
+					<section>
+						<section data-markdown data-background="#fff">
 						### Using Result
 
 						```swift
@@ -144,6 +150,97 @@ func validate(email: String)
     }
 }
 						```
+						</section>
+						<section data-markdown data-background="#fff">
+						### Using Result
+
+						```swift
+func nonEmpty(_ string: String,
+              orElse: (String) -> ValidationError)
+  -> Result&lt;String, ValidationError&gt; {
+    if !string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        return .success(string)
+    } else {
+        return .failure(orElse(string))
+    }
+}
+						```
+						</section>
+						<section data-markdown data-background="#fff">
+							### Using Result
+
+							```swift
+func validate(firstName: String)
+  -> Result&lt;String, ValidationError&gt; {
+    return nonEmpty(firstName,
+		            orElse: ValidationError.emptyFirstName)
+}
+
+func validate(lastName: String)
+  -> Result&lt;String, ValidationError&gt; {
+    return nonEmpty(lastName,
+		            orElse: ValidationError.emptyLastName)
+}
+							```
+						</section>
+						<section data-markdown data-background="#fff">
+							### Using Result
+
+							```swift
+func validate(birthday: Date,
+              referenceDate: Date)
+  -> Result&lt;Date, ValidationError&gt; {
+    if Calendar.current.date(byAdding: .year,
+		                     value: 18,
+                             to: birthday)! &lt; referenceDate {
+        return .success(birthday)
+    } else {
+        return .failure(.userTooYoung(birthday))
+    }
+}
+							```
+						</section>
+						<section data-markdown data-background="#fff">
+							### Using Result
+
+							```swift
+func matches(_ string: String,
+             regExp: NSRegularExpression,
+             orElse: (String) -> ValidationError)
+  -> Result&lt;String, ValidationError&gt; {
+    if regExp.firstMatch(in: string,
+                         options: [],
+												     range: NSRange(location:0,
+                                        length: string.count))
+      != nil {
+        return .success(string)
+    } else {
+        return .failure(orElse(string))
+    }
+}
+							```
+						</section>
+						<section data-markdown data-background="#fff">
+							### Using Result
+
+							```swift
+func validate(documentId: String) -> Result<String, ValidationError> {
+    let documentRegEx = try! NSRegularExpression(pattern:
+      "\\d{8}[a-zA-Z]{1}")
+    return matches(documentId,
+                   regExp: documentRegEx,
+                   orElse: ValidationError.invalidDocumentId)
+}
+
+func validate(phoneNumber: String) -> Result<String, ValidationError> {
+    let phoneRegEx = try! NSRegularExpression(pattern:
+      "\\d{9}")
+    return matches(phoneNumber,
+                   regExp: phoneRegEx,
+                   orElse: ValidationError.invalidPhoneNumber)
+}
+							```
+						</section>
 					</section>
 					<section data-markdown data-background="#fff">
 						### Combining Results
@@ -164,6 +261,7 @@ let form = ???
 
 						```swift
 let firstNameResult = validate(firstName: "Tomás")
+
 switch firstNameResult {
 case let .success(name): ...
 case let .failure(error): ...
@@ -192,8 +290,8 @@ case let (_, .failure(error)): ...
 
 						We can follow two different combination strategies:
 
-						1. Fail-fast: return the first error found.
-						2. Error accumulation: provide a list of all errors found.
+						1. **Fail-fast**: return the first error found.
+						2. **Error accumulation**: provide a list of all errors found.
 					</section>
 					<section data-background="img/bow-card.png" data-background-opacity="1"></section>
 					<section data-markdown>
@@ -213,7 +311,7 @@ case let (_, .failure(error)): ...
 						Result can be easily transformed to Either and leverage its API:
 
 						```swift
-let firstNameResult: Result&lt;String, VerificationError&gt;> =
+let firstNameResult: Result&lt;String, VerificationError&gt; =
 	validate(firstName: "Tomás")
 let firstNameEither: Either&lt;VerificationError, String&gt; =
 	firstNameResult.toEither()
@@ -260,7 +358,7 @@ failFast(firstName: "Tomás",
 //            documentId: "12345678T",
 //            phoneNumber: "666111222",
 //            email: "tomas.ruiz@47deg.com"))
-					```
+						```
 					</section>
 					<section data-markdown data-background="#fff">
 						### Either - Fail fast
@@ -320,7 +418,7 @@ Validated&lt;[ValidationError], Form&gt;
 						Problem:
 
 						```swift
-let wrong = Validated&lt;[ValidationError], Form&gt;.invalid([])
+let illegal = Validated&lt;[ValidationError], Form&gt;.invalid([])
 						```
 					</section>
 					<section data-markdown>
@@ -413,17 +511,33 @@ errorAccummulation(firstName: "",
 //   Last name is empty: "", First name is empty: ""]))
 						```
 					</section>
+					<section data-markdown data-background="#fff">
+						### Summary
+
+						| Data type | Extract values | Combine values | Combination strategy |
+						| --------- |:--------------:|:--------------:|:--------------------:|
+						| `Result&lt;Success, Failure&gt;` | Pattern matching | 😔 | 🤷🏻‍♂️ |
+						| `Either&lt;Failure, Success&gt;` | `fold` | `map` | Fail-fast |
+						| `Validated&lt;Failure, Success&gt;` | `fold` | `map` | Error accumulation |
+					</section>
 					<section data-markdown>
 						### Applicative
 
 						`&lt;*&gt;`
 					</section>
 					<section data-markdown data-background="#fff">
-						### Applicative
+						## Applicative
 
+						With simulated Higher-Kinded Types:
 						```swift
 static func ap&lt;A, B&gt;(_ ff: Kind&lt;F, (A) -&gt; B&gt;,
                      _ fa: Kind&lt;F, A&gt;) -> Kind&lt;F, B&gt;
+						```
+
+						Someday, with native Higher-Kinded Types...
+						```swift
+static func ap&lt;A, B&gt;(_ ff: F&lt;(A) -&gt; B&gt;,
+                     _ fa: F&lt;A&gt;) -> F&lt;B&gt;
 						```
 					</section>
 					<section data-markdown data-background="#fff">
@@ -435,13 +549,13 @@ static func ap&lt;A, B&gt;(_ ff: Kind&lt;F, (A) -&gt; B&gt;,
 						# Conclusions
 					</section>
 					<section data-markdown data-background="#fff">
-						### Lessons learned
+						## Lessons learned
 
-						- Use types to model success and error cases.
-						- Result is nice, but needs a more powerful API.
-						- Bow provides Either (fail-fast) and Validated (error accumulation).
-						- Make illegal states impossible to represent.
-						- Use abstractions based on type classes.
+						- Use **types** to model success and error cases.
+						- Result is nice, but needs a **more powerful API**.
+						- Bow provides **Either** (*fail-fast*) and **Validated** (*error accumulation*).
+						- Make illegal states **impossible to represent**.
+						- Use **abstractions** based on type classes.
 					</section>
 					<section data-markdown>
 						# Thanks!
@@ -449,9 +563,13 @@ static func ap&lt;A, B&gt;(_ ff: Kind&lt;F, (A) -&gt; B&gt;,
 						### Questions?
 
 						- Tomás Ruiz-López: [@tomasruizlopez](https://twitter.com/tomasruizlopez)
-						- Bow: [@bow_swift](https://twitter.com/bow_swift) | [Website and documentation](https://bow-swift.io/)
+						- Bow: [@bow_swift](https://twitter.com/bow_swift) | [bow-swift.io](https://bow-swift.io/)
+						- 47degrees: [@47deg](https://twitter.com/47deg) | [47deg.com](https://www.47deg.com)
 					</section>
 			</div>
+			<footer>
+				<div>@tomasruizlopez | #AltConfMadrid | @bow_swift</div>
+			</footer>
 		</div>
 
 		<script src="js/reveal.js"></script>
@@ -461,8 +579,148 @@ static func ap&lt;A, B&gt;(_ ff: Kind&lt;F, (A) -&gt; B&gt;,
 			// - https://github.com/hakimel/reveal.js#configuration
 			// - https://github.com/hakimel/reveal.js#dependencies
 			Reveal.initialize({
+				// Display presentation control arrows
+				controls: true,
+
+				// Help the user learn the controls by providing hints, for example by
+				// bouncing the down arrow when they first encounter a vertical slide
+				controlsTutorial: true,
+
+				// Determines where controls appear, "edges" or "bottom-right"
+				controlsLayout: 'bottom-right',
+
+				// Visibility rule for backwards navigation arrows; "faded", "hidden"
+				// or "visible"
+				controlsBackArrows: 'faded',
+
+				// Display a presentation progress bar
 				progress: true,
-				history : true,
+
+				// Display the page number of the current slide
+				slideNumber: false,
+
+				// Add the current slide number to the URL hash so that reloading the
+				// page/copying the URL will return you to the same slide
+				hash: false,
+
+				// Push each slide change to the browser history. Implies `hash: true`
+				history: true,
+
+				// Enable keyboard shortcuts for navigation
+				keyboard: true,
+
+				// Enable the slide overview mode
+				overview: true,
+
+				// Vertical centering of slides
+				center: true,
+
+				// Enables touch navigation on devices with touch input
+				touch: true,
+
+				// Loop the presentation
+				loop: false,
+
+				// Change the presentation direction to be RTL
+				rtl: false,
+
+				// See https://github.com/hakimel/reveal.js/#navigation-mode
+				navigationMode: 'default',
+
+				// Randomizes the order of slides each time the presentation loads
+				shuffle: false,
+
+				// Turns fragments on and off globally
+				fragments: true,
+
+				// Flags whether to include the current fragment in the URL,
+				// so that reloading brings you to the same fragment position
+				fragmentInURL: false,
+
+				// Flags if the presentation is running in an embedded mode,
+				// i.e. contained within a limited portion of the screen
+				embedded: false,
+
+				// Flags if we should show a help overlay when the questionmark
+				// key is pressed
+				help: true,
+
+				// Flags if speaker notes should be visible to all viewers
+				showNotes: false,
+
+				// Global override for autoplaying embedded media (video/audio/iframe)
+				// - null: Media will only autoplay if data-autoplay is present
+				// - true: All media will autoplay, regardless of individual setting
+				// - false: No media will autoplay, regardless of individual setting
+				autoPlayMedia: null,
+
+				// Global override for preloading lazy-loaded iframes
+				// - null: Iframes with data-src AND data-preload will be loaded when within
+				//   the viewDistance, iframes with only data-src will be loaded when visible
+				// - true: All iframes with data-src will be loaded when within the viewDistance
+				// - false: All iframes with data-src will be loaded only when visible
+				preloadIframes: null,
+
+				// Number of milliseconds between automatically proceeding to the
+				// next slide, disabled when set to 0, this value can be overwritten
+				// by using a data-autoslide attribute on your slides
+				autoSlide: 0,
+
+				// Stop auto-sliding after user input
+				autoSlideStoppable: true,
+
+				// Use this method for navigation when auto-sliding
+				autoSlideMethod: Reveal.navigateNext,
+
+				// Specify the average time in seconds that you think you will spend
+				// presenting each slide. This is used to show a pacing timer in the
+				// speaker view
+				defaultTiming: 120,
+
+				// Enable slide navigation via mouse wheel
+				mouseWheel: false,
+
+				// Hide cursor if inactive
+				hideInactiveCursor: true,
+
+				// Time before the cursor is hidden (in ms)
+				hideCursorTime: 2000,
+
+				// Hides the address bar on mobile devices
+				hideAddressBar: true,
+
+				// Opens links in an iframe preview overlay
+				// Add `data-preview-link` and `data-preview-link="false"` to customise each link
+				// individually
+				previewLinks: false,
+
+				// Transition style
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// Transition speed
+				transitionSpeed: 'default', // default/fast/slow
+
+				// Transition style for full page slide backgrounds
+				backgroundTransition: 'fade', // none/fade/slide/convex/concave/zoom
+
+				// Number of slides away from the current that are visible
+				viewDistance: 3,
+
+				// Parallax background image
+				parallaxBackgroundImage: '', // e.g. "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'"
+
+				// Parallax background size
+				parallaxBackgroundSize: '', // CSS syntax, e.g. "2100px 900px"
+
+				// Number of pixels to move the parallax background per slide
+				// - Calculated automatically unless specified
+				// - Set to 0 to disable movement along an axis
+				parallaxBackgroundHorizontal: null,
+				parallaxBackgroundVertical: null,
+
+				// The display mode that will be used to show slides
+				display: 'block',
+
 				menu: {
 					// Specifies which side of the presentation the menu will
 					// be shown. Use 'left' or 'right'.
@@ -597,7 +855,7 @@ static func ap&lt;A, B&gt;(_ ff: Kind&lt;F, (A) -&gt; B&gt;,
 					fullscreen: true,
 
 					// Add button to toggle the overview mode on and off
-					overview: false,
+					overview: true,
 
 					// Add button to pause (hide) the presentation display
 					pause: true,
@@ -629,7 +887,8 @@ static func ap&lt;A, B&gt;(_ ff: Kind&lt;F, (A) -&gt; B&gt;,
 					{ src: 'plugin/notes/notes.js', async: true },
 					{ src: 'plugin/menu/menu.js' },
 					{ src: 'plugin/toolbar/toolbar.js' },
-					{ src: 'plugin/highlight/highlight.js', async: true }
+					{ src: 'plugin/highlight/highlight.js', async: true },
+					{ src: 'plugin/headfoot/headfoot.js' }
 				]
 			});
 		</script>
