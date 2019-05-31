@@ -547,6 +547,18 @@ static func ap&lt;A, B&gt;(_ ff: F&lt;(A) -&gt; B&gt;,
 						### Applicative
 
 						Perform independent computations and combine their results.
+
+						```swift
+Either&lt;ValidationError, Form&gt;.map(
+  fa, fb, fc) { a, b, c in ... }
+
+Validated&lt;ValidationError, Form&gt;.map(
+  fa, fb, fc) { a, b, c in ... }
+
+// In general, working with any type F
+F&lt;Form&gt;.map(
+  fa, fb, fc) { a, b, c in ... }
+						```
 					</section>
 					<section data-markdown>
 						# Conclusions
