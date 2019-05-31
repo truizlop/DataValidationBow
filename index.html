@@ -458,7 +458,7 @@ Validated&lt;NonEmptyArray&lt;ValidationError&gt;, Form&gt;
 // Or alternatively:
 Validated&lt;NEA&lt;ValidationError&gt;, Form&gt;
 
-// Even more succint:
+// Even more succint, with the ValidatedNEA typealias:
 ValidatedNEA&lt;ValidationError, Form&gt;
 						```
 					</section>
@@ -517,6 +517,8 @@ errorAccummulation(firstName: "Tomás",
 					</section>
 					<section data-markdown data-background="#fff">
 						### Validated - Error accumulation
+
+						If some inputs are invalid, they are combined and reported:
 
 						```swift
 errorAccummulation(firstName: "",
