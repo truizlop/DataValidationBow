@@ -47,11 +47,12 @@
 
 						1. Running example
 						2. Error modeling
-						3. Result
-						4. Fail-fast
-						5. Error accumulation
-						6. Applicative
-						7. Conclusions
+						3. Optionals
+						4. Result
+						5. Fail-fast
+						6. Error accumulation
+						7. Applicative
+						8. Conclusions
 					</section>
 					<section data-markdown data-background="#fff">
 						## Running example
@@ -115,6 +116,24 @@ func validate(firstName: String) throws -> String {
 
 						```swift
 func validate(firstName: String) throws -> String
+						```
+					</section>
+					<section data-markdown>
+						## Using Optionals
+					</section>
+					<section data-markdown data-background="#fff">
+						### Using Optionals
+
+						Modeling errors as absent values
+
+						```swift
+func validate(firstName: String) -> String? {
+    guard !firstName.trimmingCharacters(in:
+      .whitespacesAndNewlines).isEmpty else {
+        return nil
+    }
+    return firstName
+}
 						```
 					</section>
 					<section data-markdown>
